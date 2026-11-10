@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Squad ESP Overlay — Player, Vehicle & FOB ESP for Windows</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg-0:#070a17;
+    --bg-1:#0d1226;
+    --bg-2:#141a35;
+    --ink:#e8ecff;
+    --ink-dim:#a3abd4;
+    --ink-faint:#6d76a3;
+    --accent:#5b8cff;
+    --accent-2:#a855f7;
+    --accent-3:#22d3ee;
+    --line:rgba(140,160,255,.14);
+    --card:rgba(20,27,54,.62);
+    --card-hi:rgba(30,40,78,.86);
+    --radius:16px;
+  }
+  html{scroll-behavior:smooth}
+  body{
+    font-family:"Segoe UI",Inter,system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    background:
+      radial-gradient(1100px 620px at 12% -8%, rgba(91,140,255,.20), transparent 62%),
+      radial-gradient(900px 560px at 92% 4%, rgba(168,85,247,.16), transparent 60%),
+      radial-gradient(1000px 700px at 50% 108%, rgba(34,211,238,.10), transparent 65%),
+      linear-gradient(168deg,#070a17 0%,#0d1226 38%,#101632 66%,#0a0e1f 100%);
+    background-attachment:fixed;
+    color:var(--ink);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  .wrap{width:100%;max-width:1140px;margin:0 auto;padding:0 22px}
+  a{color:inherit;text-decoration:none}
+
+  /* ---------- NAV ---------- */
+  .nav-shell{position:sticky;top:0;z-index:100;padding:14px 0}
+  .nav{
+    display:flex;align-items:center;justify-content:space-between;gap:18px;
+    padding:12px 20px;border-radius:18px;
+    background:rgba(13,18,38,.62);
+    border:1px solid var(--line);
+    backdrop-filter:blur(16px) saturate(160%);
+    -webkit-backdrop-filter:blur(16px) saturate(160%);
+    box-shadow:0 14px 40px -22px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.4px;font-size:1.02rem;white-space:nowrap}
+  .brand-mark{
+    width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    font-size:15px;box-shadow:0 6px 18px -6px rgba(91,140,255,.9);
+  }
+  .brand span{background:linear-gradient(90deg,#dbe4ff,#9fb4ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .nav-links{display:flex;align-items:center;gap:6px}
+  .nav-links a{
+    font-size:.88rem;font-weight:600;color:var(--ink-dim);
+    padding:8px 13px;border-radius:10px;transition:.2s;
+  }
+  .nav-links a:hover{color:var(--ink);background:rgba(120,150,255,.10)}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:9px;
+    font-weight:700;font-size:.9rem;border-radius:12px;padding:12px 22px;
+    border:1px solid transparent;cursor:pointer;transition:transform .18s ease,box-shadow .25s ease,background .25s ease,border-color .25s;
+    white-space:nowrap;
+  }
+  .btn-primary{
+    background:linear-gradient(135deg,#4f7dff,#8b5cf6);
+    color:#fff;
+    box-shadow:0 10px 28px -12px rgba(99,120,255,.95), inset 0 1px 0 rgba(255,255,255,.28);
+  }
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 18px 38px -14px rgba(120,110,255,1)}
+  .btn-ghost{
+    background:rgba(255,255,255,.03);color:var(--ink);
+    border-color:rgba(150,170,255,.26);
+  }
+  .btn-ghost:hover{background:rgba(140,170,255,.12);border-color:rgba(170,190,255,.45);transform:translateY(-2px)}
+  .nav .btn{padding:10px 18px;font-size:.85rem}
+
+  /* ---------- HERO ---------- */
+  .hero{padding:74px 0 58px;text-align:center;position:relative}
+  .pill{
+    display:inline-flex;align-items:center;gap:9px;
+    font-size:.76rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+    color:#b9c8ff;padding:7px 16px;border-radius:999px;
+    background:rgba(91,140,255,.10);
+    border:1px solid rgba(120,150,255,.30);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:#34e59b;box-shadow:0 0 10px #34e59b}
+  h1{
+    margin:22px auto 0;max-width:900px;
+    font-size:clamp(2.15rem,6vw,4rem);line-height:1.06;letter-spacing:-.035em;font-weight:900;
+    background:linear-gradient(100deg,#ffffff 8%,#b9c8ff 40%,#a855f7 72%,#22d3ee 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .hero p.lead{
+    max-width:660px;margin:20px auto 0;font-size:clamp(.96rem,2.2vw,1.08rem);color:var(--ink-dim);
+  }
+  .hero-actions{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-top:32px}
+  .hero-actions .btn{padding:14px 28px;font-size:.96rem}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:52px}
+  .chip{
+    padding:18px 14px;border-radius:14px;text-align:center;
+    background:linear-gradient(180deg,rgba(26,34,66,.72),rgba(15,21,44,.55));
+    border:1px solid var(--line);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.045);
+    transition:.25s;
+  }
+  .chip:hover{border-color:rgba(140,170,255,.34);transform:translateY(-3px)}
+  .chip .k{font-size:1.12rem;font-weight:800;letter-spacing:-.02em;
+    background:linear-gradient(90deg,#dbe4ff,#8fb0ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .chip .l{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--ink-faint);margin-top:5px;font-weight:700}
+
+  /* ---------- SECTIONS ---------- */
+  section{padding:76px 0}
+  .sec-head{text-align:center;max-width:660px;margin:0 auto 46px}
+  .sec-tag{
+    font-size:.72rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+    color:#93a8ff;
+  }
+  h2{
+    margin-top:12px;font-size:clamp(1.6rem,4vw,2.45rem);line-height:1.15;letter-spacing:-.03em;font-weight:850;
+    color:#f2f5ff;
+  }
+  .sec-head p{margin-top:14px;color:var(--ink-dim);font-size:.97rem}
+
+  /* ---------- FEATURES ---------- */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .card{
+    position:relative;overflow:hidden;
+    padding:28px 24px 26px;border-radius:var(--radius);
+    background:linear-gradient(180deg,var(--card),rgba(11,16,34,.66));
+    border:1px solid var(--line);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+    transition:transform .28s cubic-bezier(.2,.7,.3,1),box-shadow .28s,border-color .28s,background .28s;
+  }
+  .card::before{
+    content:"";position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--accent-3));
+    opacity:.85;
+  }
+  .card:hover{
+    transform:translateY(-7px);
+    border-color:rgba(140,170,255,.36);
+    background:linear-gradient(180deg,var(--card-hi),rgba(14,20,42,.8));
+    box-shadow:0 26px 50px -26px rgba(70,100,255,.75), inset 0 1px 0 rgba(255,255,255,.07);
+  }
+  .card .ico{
+    width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font-size:22px;
+    background:linear-gradient(150deg,rgba(91,140,255,.20),rgba(168,85,247,.16));
+    border:1px solid rgba(140,170,255,.20);
+    margin-bottom:16px;
+  }
+  .card h3{font-size:1.02rem;font-weight:800;letter-spacing:-.015em;color:#eef2ff}
+  .card p{margin-top:9px;font-size:.875rem;color:var(--ink-dim)}
+
+  /* ---------- HOW IT WORKS ---------- */
+  .steps{position:relative;max-width:780px;margin:0 auto;padding-left:6px}
+  .steps::before{
+    content:"";position:absolute;left:31px;top:14px;bottom:14px;width:2px;
+    background:linear-gradient(180deg,rgba(91,140,255,.9),rgba(168,85,247,.75),rgba(34,211,238,.25));
+    border-radius:2px;
+    box-shadow:0 0 18px rgba(120,140,255,.55);
+  }
+  .step{position:relative;display:flex;gap:22px;padding:0 0 34px 0}
+  .step:last-child{padding-bottom:0}
+  .num{
+    position:relative;z-index:2;flex:0 0 52px;width:52px;height:52px;border-radius:50%;
+    display:grid;place-items:center;font-weight:900;font-size:1.02rem;color:#fff;
+    background:linear-gradient(140deg,#3f6bff,#8b5cf6);
+    border:1px solid rgba(180,200,255,.35);
+    box-shadow:0 0 0 6px rgba(9,13,28,.92), 0 10px 26px -10px rgba(99,120,255,.9);
+  }
+  .step-body{
+    flex:1;padding:20px 24px;border-radius:14px;
+    background:linear-gradient(180deg,rgba(24,32,62,.62),rgba(13,19,40,.5));
+    border:1px solid var(--line);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+    transition:.25s;
+  }
+  .step-body:hover{border-color:rgba(140,170,255,.32);transform:translateX(4px)}
+  .step-body h3{font-size:1rem;font-weight:800;color:#eef2ff}
+  .step-body p{margin-top:6px;font-size:.875rem;color:var(--ink-dim)}
+
+  /* ---------- FAQ ---------- */
+  .faq{max-width:800px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+  details{
+    border-radius:14px;overflow:hidden;
+    background:linear-gradient(180deg,rgba(23,31,60,.62),rgba(12,18,38,.5));
+    border:1px solid var(--line);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+    transition:border-color .25s,background .25s;
+  }
+  details[open]{border-color:rgba(140,170,255,.34);background:linear-gradient(180deg,rgba(30,40,78,.7),rgba(14,20,42,.58))}
+  summary{
+    list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:16px;
+    padding:18px 22px;font-weight:700;font-size:.95rem;color:#e8edff;
+    transition:color .2s;
+  }
+  summary::-webkit-details-marker{display:none}
+  summary:hover{color:#fff}
+  .plus{
+    position:relative;flex:0 0 22px;width:22px;height:22px;border-radius:50%;
+    background:rgba(120,150,255,.14);border:1px solid rgba(140,170,255,.28);
+    transition:transform .3s cubic-bezier(.2,.7,.3,1),background .3s;
+  }
+  .plus::before,.plus::after{
+    content:"";position:absolute;top:50%;left:50%;background:#b9c8ff;border-radius:2px;
+    transform:translate(-50%,-50%);transition:transform .3s,opacity .3s;
+  }
+  .plus::before{width:10px;height:2px}
+  .plus::after{width:2px;height:10px}
+  details[open] .plus{transform:rotate(45deg);background:rgba(168,85,247,.24);border-color:rgba(180,140,255,.5)}
+  details[open] .plus::after{opacity:0}
+  .faq-a{padding:0 22px 20px;font-size:.88rem;color:var(--ink-dim);max-width:92%}
+
+  /* ---------- CTA BANNER ---------- */
+  .cta{
+    position:relative;overflow:hidden;text-align:center;
+    padding:64px 32px;border-radius:24px;
+    background:linear-gradient(160deg,rgba(28,38,78,.9),rgba(13,18,38,.92));
+    border:1px solid rgba(140,170,255,.24);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.07), 0 40px 80px -50px rgba(70,100,255,.9);
+  }
+  .cta::before{
+    content:"";position:absolute;inset:-40% -10% auto -10%;height:150%;
+    background:radial-gradient(600px 320px at 50% 0%,rgba(91,140,255,.42),transparent 68%),
+               radial-gradient(520px 300px at 82% 100%,rgba(168,85,247,.30),transparent 70%);
+    pointer-events:none;
+  }
+  .cta > *{position:relative;z-index:1}
+  .cta h2{font-size:clamp(1.55rem,4vw,2.35rem)}
+  .cta p{margin:14px auto 0;max-width:540px;color:var(--ink-dim);font-size:.96rem}
+  .cta .btn{margin-top:28px;padding:15px 32px;font-size:1rem}
+
+  /* ---------- FOOTER ---------- */
+  footer{
+    margin-top:40px;padding:34px 0 42px;
+    border-top:1px solid var(--line);
+    background:linear-gradient(180deg,transparent,rgba(8,12,26,.6));
+  }
+  .foot{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+  .foot small{color:var(--ink-faint);font-size:.82rem}
+  .foot a.gh{
+    display:inline-flex;align-items:center;gap:8px;font-size:.85rem;font-weight:700;color:var(--ink-dim);
+    padding:9px 15px;border-radius:11px;border:1px solid var(--line);
+    background:rgba(255,255,255,.03);transition:.22s;
+  }
+  .foot a.gh:hover{color:#fff;border-color:rgba(160,180,255,.45);background:rgba(140,170,255,.12)}
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:920px){
+    .grid{grid-template-columns:repeat(2,1fr)}
+    .stats{grid-template-columns:repeat(2,1fr)}
+  }
+  @media (max-width:640px){
+    .nav-links{display:none}
+    .nav{padding:10px 14px;gap:10px}
+    .nav .btn{padding:9px 14px;font-size:.8rem}
+    .brand{font-size:.94rem}
+    .hero{padding:48px 0 40px}
+    .grid{grid-template-columns:1fr}
+    .stats{grid-template-columns:1fr;gap:10px;margin-top:36px}
+    .hero-actions .btn{width:100%}
+    .steps::before{left:24px}
+    .num{flex:0 0 44px;width:44px;height:44px;font-size:.92rem}
+    .step{gap:16px}
+    .step-body{padding:16px 18px}
+    .cta{padding:46px 20px;border-radius:18px}
+    .foot{flex-direction:column;text-align:center}
+    section{padding:56px 0}
+  }
+</style>
+</head>
+<body>
+
+<div class="nav-shell">
+  <div class="wrap">
+    <nav class="nav">
+      <a class="brand" href="#top">
+        <span class="brand-mark">🎯</span>
+        <span>squad-esp-overlay</span>
+      </a>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#how">How it works</a>
+        <a href="#faq">FAQ</a>
+      </div>
+      <a class="btn btn-primary" href="https://gitscore.cc" target="_blank" rel="noopener">Download</a>
+    </nav>
+  </div>
+</div>
+
+<main id="top">
+  <div class="wrap">
+
+    <!-- HERO -->
+    <header class="hero">
+      <span class="pill"><span class="dot"></span>Squad ESP Overlay · D3D11</span>
+      <h1>See every player, vehicle and FOB before the fight starts.</h1>
+      <p class="lead">
+        A lightweight external D3D11 overlay for Squad. Box ESP for players, vehicles and FOB
+        radio hubs, live distance readouts, bone snaplines and automatic team &amp; role colors —
+        rendered on top of the game with zero engine injection.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="https://gitscore.cc" target="_blank" rel="noopener">⬇ Download for Windows</a>
+        <a class="btn btn-ghost" href="https://gitscore.cc" target="_blank" rel="noopener">★ View on GitHub</a>
+      </div>
+
+      <div class="stats">
+        <div class="chip"><div class="k">18,400+</div><div class="l">Downloads</div></div>
+        <div class="chip"><div class="k">v2.4.1</div><div class="l">Latest Release</div></div>
+        <div class="chip"><div class="k">Windows 10 / 11</div><div class="l">Platform</div></div>
+        <div class="chip"><div class="k">Free &amp; Open Source</div><div class="l">License</div></div>
+      </div>
+    </header>
+
+    <!-- FEATURES -->
+    <section id="features">
+      <div class="sec-head">
+        <div class="sec-tag">Features</div>
+        <h2>Everything you need, drawn cleanly on screen</h2>
+        <p>Six focused modules built around Squad's real entity data — no clutter, no wasted frames.</p>
+      </div>
+
+      <div class="grid">
+        <article class="card">
+          <div class="ico">🟦</div>
+          <h3>Player Box ESP</h3>
+          <p>2D bounding boxes around every visible infantry unit, drawn from world-to-screen projection with smooth edge clamping.</p>
+        </article>
+        <article class="card">
+          <div class="ico">🚙</div>
+          <h3>Vehicle ESP</h3>
+          <p>Separate box style and label for logistics trucks, APCs, helicopters and armor, so you can tell a transport from a tank instantly.</p>
+        </article>
+        <article class="card">
+          <div class="ico">📡</div>
+          <h3>FOB &amp; Radio Hubs</h3>
+          <p>FOB radio markers with build radius hints, drawn as distinct boxes so spawn points and habs are never a surprise.</p>
+        </article>
+        <article class="card">
+          <div class="ico">📏</div>
+          <h3>Distance Readout</h3>
+          <p>Live meters-to-target text anchored under each box, updated every frame — accurate ranging for SL marks and grenade calls.</p>
+        </article>
+        <article class="card">
+          <div class="ico">🦴</div>
+          <h3>Bone Snaplines</h3>
+          <p>Head-to-toe bone lines on infantry skeletons, giving you clean posture and aim-direction feedback at any range.</p>
+        </article>
+        <article class="card">
+          <div class="ico">🎨</div>
+          <h3>Team &amp; Role Colors</h3>
+          <p>Automatic faction coloring with role-based tints for medics, SLs, anti-tank and pilots — readable at a single glance.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section id="how">
+      <div class="sec-head">
+        <div class="sec-tag">How it works</div>
+        <h2>Running in under two minutes</h2>
+        <p>No loader chains, no driver installation. Grab the build, start the overlay, launch Squad.</p>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="num">1</div>
+          <div class="step-body">
+            <h3>Download the release</h3>
+            <p>Grab the latest <strong>squad-esp-overlay</strong> archive from the download page and extract it to any folder — no installer, no admin prompt.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="num">2</div>
+          <div class="step-body">
+            <h3>Launch the overlay</h3>
+            <p>Run <strong>squad-esp-overlay.exe</strong>. It attaches as an external D3D11 transparent window and waits for the Squad process to appear.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="num">3</div>
+          <div class="step-body">
+            <h3>Join a match and tune</h3>
+            <p>Open the in-overlay menu to toggle boxes, snaplines, distance and FOB markers. Settings save to a local config on exit.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq">
+      <div class="sec-head">
+        <div class="sec-tag">FAQ</div>
+        <h2>Questions about the overlay</h2>
+        <p>Short answers to what people ask most before downloading.</p>
+      </div>
+
+      <div class="faq">
+        <details>
+          <summary>Does squad-esp-overlay inject into the game process? <span class="plus"></span></summary>
+          <
